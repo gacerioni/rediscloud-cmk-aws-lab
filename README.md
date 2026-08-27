@@ -20,8 +20,27 @@ Reference: [CMK guide](https://registry.terraform.io/providers/RedisLabs/rediscl
   an IAM role on the Redis side.
 - You grant that role on your KMS key policy (Encrypt, Decrypt, ReEncrypt*,
   GenerateDataKey*, DescribeKey, CreateGrant, ListGrants, RevokeGrant).
-- A second apply passes your key ARN in the `customer_managed_key` block and
-  the subscription activates encrypting persistent storage with your key.
+- A second apply passes your key ARN in the `customer_managed_key` block, the
+  subscription activates encrypting persistent storage with your key, and a
+  real database is created on top of it.
+
+### The two ARNs (where the official guide gets confusing)
+
+There are two different ARNs in this flow and they exist at different times:
+
+| ARN | What it is | When it exists |
+|---|---|---|
+| `resource_name` (KMS key ARN) | YOUR key | before phase 1 (you create it first) |
+| `customer_managed_key_aws_role_arn` | the Redis-side IAM role that reads your key | only AFTER phase 1 |
+
+The role ARN lives in a Redis-side AWS account that varies per subscription
+(observed empirically: two subscriptions returned roles in two different AWS
+accounts), so pre-granting is impossible. That is the whole reason for the
+two applies: subscription first (to learn the role), grant in AWS, then key.
+
+This repo makes the two phases explicit with the `cmk_grant_done` variable
+(a `dynamic "customer_managed_key"` block gated on it), so both applies exit
+cleanly instead of relying on a half-failed first apply.
 
 ## Two variants
 
@@ -66,11 +85,16 @@ No IDs are hardcoded: payment method comes from a data source
 Both phases ran against a real account in `sa-east-1` with the Redis internal
 cloud account (`cloud_account_id = 1`):
 
-- Phase 1: subscription created in `encryption_key_pending` in 27s, role ARN
-  returned. The console shows the same ARN and an activation deadline
+- Phase 1: subscription created in `encryption_key_pending` in under a minute,
+  role ARN returned. The console shows the same ARN and an activation deadline
   (7 days; the pending subscription is auto-deleted if never activated).
 - Phase 2: KMS key + key policy grant, apply activated the subscription in
-  about 10 minutes, encrypting persistent storage with the customer key.
+  about 10 minutes and created a real database on it (about 3 more minutes).
+- Smoke test against the database endpoint (TLS):
+
+```
+redis-cli --tls -h <endpoint> -p <port> -a <password> ping   # PONG
+```
 
 ### Gotchas found in practice
 

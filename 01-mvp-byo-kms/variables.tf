@@ -82,3 +82,24 @@ variable "cmk_grant_done" {
   type        = bool
   default     = false
 }
+
+# ----------------------------------------------------------------------------
+# Database (created on phase 2, on top of the CMK-encrypted subscription)
+# ----------------------------------------------------------------------------
+variable "database_name" {
+  description = "Name of the database created after CMK activation"
+  type        = string
+  default     = "cmk-lab-db"
+}
+
+variable "replication" {
+  description = "In-region replication for the database"
+  type        = bool
+  default     = false
+}
+
+variable "enable_tls" {
+  description = "Require TLS on the database endpoint"
+  type        = bool
+  default     = true
+}
