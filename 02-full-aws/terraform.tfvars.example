@@ -1,0 +1,13 @@
+# Copy to terraform.tfvars and fill in. Never commit terraform.tfvars.
+credit_card_type      = "Visa"
+credit_card_last_four = "1234"
+
+subscription_name          = "cmk-lab-full"
+aws_region                 = "sa-east-1"
+networking_deployment_cidr = "10.43.0.0/24"
+cloud_account_id           = "1"
+# aws_profile              = "my-sso-profile"
+
+# Phase 2:
+# cmk_grant_done = true
+# redis_role_arn = "arn:aws:iam::REDIS_SIDE_ACCOUNT:role/..."   # output of phase 1

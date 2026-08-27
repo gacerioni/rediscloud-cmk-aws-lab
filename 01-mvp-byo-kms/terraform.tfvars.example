@@ -1,0 +1,14 @@
+# Copy to terraform.tfvars and fill in. Never commit terraform.tfvars.
+# Credentials: prefer env vars (REDISCLOUD_ACCESS_KEY / REDISCLOUD_SECRET_KEY).
+
+credit_card_type      = "Visa"
+credit_card_last_four = "1234"
+
+subscription_name          = "cmk-lab-mvp"
+aws_region                 = "sa-east-1"
+networking_deployment_cidr = "10.42.0.0/24"
+cloud_account_id           = "1"
+
+# Phase 2 (after granting the Redis role on your key policy):
+# cmk_grant_done = true
+# kms_key_arn    = "arn:aws:kms:sa-east-1:111122223333:key/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
